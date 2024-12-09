@@ -4,113 +4,151 @@ import { promptGPT } from "./shared/openai.ts";
 
 const app = new Application();
 const router = new Router();
-const kv = await Deno.openKv(); // Open the Deno KV database
+const kv = await Deno.openKv();
 
-// Helper function to fetch all clusters
-async function getAllClusters() {
-    const clusters = kv.list({ prefix: ["clusters"] });
+// Function to fetch all emotions from the database
+async function getAllEmotions() {
+    const emotions = kv.list({ prefix: ["emotions"] });
     const results = [];
-    for await (const cluster of clusters) {
-        results.push(cluster.value);
+    for await (const emotion of emotions) {
+        results.push(emotion.value);
     }
     return results;
 }
 
-// Helper function to save a cluster
-async function saveCluster(clusterId, clusterData) {
-    const clusterKey = ["clusters", clusterId];
-    await kv.set(clusterKey, clusterData);
+// Function to save an emotion to the database
+async function saveEmotion(emotionData) {
+    const emotionId = crypto.randomUUID();
+    const emotionKey = ["emotions", emotionId];
+    await kv.set(emotionKey, emotionData);
+    console.log("Saved emotion to KV:", emotionData);
 }
 
-// Route to submit a journal idea
+// Function to clear all emotions from the KV store
+async function clearAllEmotionsFromKV() {
+    const emotions = kv.list({ prefix: ["emotions"] });
+    for await (const emotion of emotions) {
+        await kv.delete(emotion.key);
+    }
+    console.log("All emotions cleared from KV.");
+}
+
+// GET route to fetch all stored emotions
+router.get("/emotions", async (context) => {
+    const allEmotions = await getAllEmotions();
+    context.response.body = { emotions: allEmotions };
+});
+
+// POST route to process journal submissions and save emotions
 router.post("/submit", async (context) => {
     try {
         const body = context.request.body({ type: "json" });
-        if (!body) throw new Error("Invalid request: No body provided");
         const data = await body.value;
+
+        console.log("Received POST /submit with data:", data);
+
         if (!data || !data.journal) {
             throw new Error("Invalid request: Missing 'journal' field");
         }
 
-        const newIdea = data.journal;
+        const newJournalEntry = data.journal;
+        console.log("New journal entry:", newJournalEntry);
 
-        const clusters = await getAllClusters();
+        // Extract emotion, valence, and arousal using GPT
+        const emotionExtract = await promptGPT(
+            `Based on the following written entry, what is the key word that represents the core emotion felt? Respond with a singular word, use no punctuation.\n\nEntry: ${newJournalEntry}`,
+        );
+        const scaleValence = await promptGPT(
+            `Using Russell's circumplex model of affect, score the following emotion on a scale of 1-10 based on valence. 1 being negative, 10 being positive. Emotion: ${emotionExtract}. Respond with only a number.`,
+        );
+        const scaleArousal = await promptGPT(
+            `Using Russell's circumplex model of affect, score the following emotion on a scale of 1-10 based on arousal. 1 being low, 10 being high. Emotion: ${emotionExtract}. Respond with only a number.`,
+        );
 
-        let matchedCluster = null;
+        console.log("Extracted Emotion:", emotionExtract);
+        console.log("Valence score:", scaleValence);
+        console.log("Arousal score:", scaleArousal);
 
-        for (const cluster of clusters) {
-            const clusterContent = cluster.ideas.join(". ");
-            const comparison = await promptGPT(
-                `Does the following new idea fit into this cluster? 
-        A fit can mean that it matches the meaning of the cluster ideas, 
-        shares the same themes, or complements the big picture.
-        Cluster Ideas: ${clusterContent}
-        New Idea: ${newIdea}
-        Respond with "yes" or "no".`,
-                { max_tokens: 10, temperature: 0.5 },
-            );
+        const newEmotion = {
+            emotion: emotionExtract,
+            valence: parseInt(scaleValence, 10),
+            arousal: parseInt(scaleArousal, 10),
+        };
 
-            if (comparison.toLowerCase().includes("yes")) {
-                matchedCluster = cluster;
-                break;
-            }
-        }
+        await saveEmotion(newEmotion);
 
-        if (matchedCluster) {
-            // Add the new idea to the matching cluster
-            matchedCluster.ideas.push(newIdea);
-            await saveCluster(matchedCluster.id, matchedCluster);
-        } else {
-            // Create a new cluster if no match is found
-            const clusterId = crypto.randomUUID();
-            const newCluster = {
-                id: clusterId,
-                title: `Cluster ${clusters.length + 1}`,
-                ideas: [newIdea],
-            };
-            await saveCluster(clusterId, newCluster);
-        }
-
-        // Fetch updated clusters and return to the client
-        const updatedClusters = await getAllClusters();
+        // Return only the newly created emotion
         context.response.body = {
-            message: "Idea submitted and processed",
-            clusters: updatedClusters,
+            message: "Emotion submitted and processed.",
+            emotion: newEmotion,
         };
     } catch (error) {
         console.error("Error handling submit request:", error);
-        context.response.status = 400; // Bad request
+        context.response.status = 400;
         context.response.body = {
             error: error.message || "Failed to process the request.",
         };
     }
 });
 
-// Route to clear all clusters
+// Endpoint to clear all stored emotions manually
 router.post("/clear", async (context) => {
     try {
-        const clusters = kv.list({ prefix: ["clusters"] });
-        for await (const cluster of clusters) {
-            await kv.delete(cluster.key);
-        }
-
-        context.response.body = {
-            message: "All clusters have been cleared.",
-        };
+        await clearAllEmotionsFromKV();
+        context.response.body = { message: "All emotions cleared." };
     } catch (error) {
-        console.error("Error clearing clusters:", error);
-        context.response.status = 500; // Internal Server Error
-        context.response.body = {
-            error: "Failed to clear clusters.",
-        };
+        console.error("Error clearing emotions:", error);
+        context.response.status = 500;
+        context.response.body = { error: "Failed to clear emotions." };
     }
 });
 
-// Middleware for serving static files and handling routes
 app.use(router.routes());
 app.use(router.allowedMethods());
 app.use(staticServer);
 
-// Start the server
 console.log("\nListening on http://localhost:8000");
+
+// Function to schedule a daily clear at midnight EST
+function scheduleDailyClear() {
+    // Calculate next midnight EST
+    const now = new Date();
+
+    // EST is typically UTC-5 or UTC-4 depending on DST. For simplicity,
+    // let's assume standard EST (UTC-5) here. For a robust solution,
+    // consider using a library that handles DST or a stable external scheduler.
+    const offsetMinutes = 5 * 60; // 5 hours * 60 minutes
+    // Convert current time to EST by subtracting 5 hours
+    const estNow = new Date(now.getTime() - offsetMinutes * 60000);
+
+    // Next midnight in EST
+    const nextMidnightEST = new Date(
+        estNow.getFullYear(),
+        estNow.getMonth(),
+        estNow.getDate() + 1,
+        0,
+        0,
+        0,
+        0,
+    );
+
+    // Convert that midnight EST time back to the server's local time
+    const localNextMidnight = new Date(
+        nextMidnightEST.getTime() + offsetMinutes * 60000,
+    );
+
+    const delay = localNextMidnight.getTime() - now.getTime();
+    console.log(`Scheduling daily clear in ${delay / 1000 / 60} minutes.`);
+
+    setTimeout(async () => {
+        console.log("Clearing emotions at midnight EST...");
+        await clearAllEmotionsFromKV();
+        // Reschedule for the next midnight
+        scheduleDailyClear();
+    }, delay);
+}
+
+// Start the scheduling after the server is up and running
+scheduleDailyClear();
+
 await app.listen({ port: 8000, signal: createExitSignal() });

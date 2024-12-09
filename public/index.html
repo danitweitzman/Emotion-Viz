@@ -5,87 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>The Shape of Ideas</title>
     <link rel="stylesheet" href="styles.css" />
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/p5.min.js"
+    ></script>
   </head>
   <body>
     <div class="container">
-      <h1>The Shape of Ideas</h1>
+      <h1 id="headerTitle"></h1>
       <form id="journalForm">
         <textarea
           id="journalInput"
-          placeholder="Enter your idea here..."
+          placeholder="Tell me about your day today. How are you feeling?"
         ></textarea>
         <button type="submit">Submit</button>
       </form>
-      <button id="clearHistory">Clear All Clusters</button>
-      <div id="clustersOutput">
-        <h2>Project Clusters</h2>
-      </div>
+      <!-- <button id="clearEmotions">x</button> -->
+      <div id="sketchContainer"></div>
     </div>
-    <script>
-      document.getElementById("journalForm").addEventListener(
-        "submit",
-        async (e) => {
-          e.preventDefault();
-          const journalEntry = document.getElementById("journalInput").value;
-
-          try {
-            const response = await fetch("/submit", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ journal: journalEntry }),
-            });
-
-            if (!response.ok) throw new Error("Network response was not ok");
-
-            const data = await response.json();
-
-            const clustersOutput = document.getElementById("clustersOutput");
-            clustersOutput.innerHTML = "<h2>Project Clusters</h2>"; // Clear previous output
-
-            // Render clusters
-            data.clusters.forEach((cluster) => {
-              const clusterDiv = document.createElement("div");
-              clusterDiv.className = "cluster";
-              clusterDiv.innerHTML = `
-              <h3>${cluster.title}</h3>
-              <ul>
-                ${cluster.ideas.map((idea) => `<li>${idea}</li>`).join("")}
-              </ul>
-            `;
-              clustersOutput.appendChild(clusterDiv);
-            });
-          } catch (error) {
-            console.error("Error submitting journal entry:", error);
-          }
-        },
-      );
-
-      document.getElementById("clearHistory").addEventListener(
-        "click",
-        async () => {
-          if (
-            confirm(
-              "Are you sure you want to clear all clusters? This action cannot be undone.",
-            )
-          ) {
-            try {
-              const response = await fetch("/clear", { method: "POST" });
-
-              if (!response.ok) throw new Error("Failed to clear clusters.");
-
-              const data = await response.json();
-              alert(data.message);
-
-              // Clear clusters from UI
-              document.getElementById("clustersOutput").innerHTML =
-                "<h2>Project Clusters</h2>";
-            } catch (error) {
-              console.error("Error clearing clusters:", error);
-              alert("An error occurred while clearing clusters.");
-            }
-          }
-        },
-      );
-    </script>
+    <script src="script.js"></script>
+    <script src="coordinate-point.js"></script>
+    <script src="geometry-util.js"></script>
+    <script src="particle.js"></script>
+    <script src="joints.js"></script>
+    <script src="hash-grid.js"></script>
   </body>
 </html>

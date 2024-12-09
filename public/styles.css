@@ -1,80 +1,64 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+@font-face {
+    font-family: "GT Flexa Mono Trial VF";
+    src: url("./fonts/GT-Flexa-Mono-Trial-VF.ttf") format("truetype");
 }
 
-body {
-    font-family: Arial, sans-serif;
-    background-color: #121212;
-    color: #e0e0e0;
-    padding: 20px;
-}
-
-.container {
-    max-width: 600px;
-    margin: 0 auto;
+@font-face {
+    font-family: "Romie";
+    src: url("./fonts/Romie-Regular.otf") format("opentype");
 }
 
 h1 {
     text-align: center;
-    margin-bottom: 30px;
-    color: #ffffff;
+    margin: 0;
+    padding: 10px;
+    font-size: 60px;
+    font-family: "Romie", sans-serif;
+    white-space: nowrap;
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
 }
 
 #journalForm {
+    position: absolute;
+    top: 140px; /* Adjust this value until it's nicely below the title */
+    left: 50%;
+    transform: translateX(-50%);
     display: flex;
+    border: none;
     flex-direction: column;
+    align-items: center;
 }
 
 #journalInput {
-    background-color: #1e1e1e;
-    color: #ffffff;
+    font-family: "GT Flexa Mono Trial VF", monospace;
+    background-color: rgb(239, 239, 239);
+    border: none;
     padding: 15px;
     font-size: 16px;
-    border: 1px solid #333333;
-    border-radius: 4px;
-    resize: vertical;
-    min-height: 200px;
-    margin-bottom: 15px;
-}
-
-button[type="submit"],
-#clearHistory {
-    background-color: #bb86fc;
-    color: #121212;
-    border: none;
-    padding: 12px;
-    font-size: 16px;
-    border-radius: 4px;
-    cursor: pointer;
-    margin-top: 10px;
-}
-
-button[type="submit"]:hover,
-#clearHistory:hover {
-    background-color: #3700b3;
-}
-
-#clustersOutput {
-    margin-top: 30px;
-}
-
-.cluster {
-    background-color: #1e1e1e;
-    color: #e0e0e0;
-    padding: 20px;
-    margin-bottom: 20px;
-    border-radius: 4px;
-    border: 1px solid #333333;
-}
-
-.cluster h3 {
     margin-bottom: 10px;
-    color: #bb86fc;
+    width: 700px; /* Make the textbox longer */
 }
 
-.cluster ul {
-    list-style-type: disc;
-    padding-left: 20px;
+button[type="submit"] {
+    font-family: "GT Flexa Mono Trial VF", monospace;
+    top: 220px;
+    padding: 10px;
+    font-size: 16px;
+    cursor: pointer;
+    border: none;
+}
+
+#clearEmotions {
+    font-family: "GT Flexa Mono Trial VF", monospace;
+    position: absolute;
+    border: none;
+    top: 220px; /* Adjust this as well to be below the form */
+    left: 55%;
+    transform: translateX(-50%);
+    padding: 10px;
+    font-size: 16px;
+    cursor: pointer;
 }
