@@ -38,10 +38,10 @@ function setup() {
         Math.floor(effectiveVertexDistance * 2),
     );
 
-    /*document.getElementById("clearEmotions").addEventListener(
+    document.getElementById("clearEmotions").addEventListener(
         "click",
         clearEmotions,
-    );*/
+    );
 
     // Fetch all emotions on page load
     fetchAllEmotions();
