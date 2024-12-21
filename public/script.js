@@ -43,7 +43,6 @@ function setup() {
         clearEmotions,
     );
 
-    // Fetch all emotions on page load
     fetchAllEmotions();
 }
 
