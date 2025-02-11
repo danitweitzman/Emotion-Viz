@@ -3,5 +3,8 @@
   "deno.lint": true,
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "denoland.vscode-deno",
-  "deno.enablePaths": ["./src"]
+  "deno.enablePaths": [
+    "./src"
+  ],
+  "liveServer.settings.port": 5501
 }

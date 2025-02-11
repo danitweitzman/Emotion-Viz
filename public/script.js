@@ -18,8 +18,8 @@ let selectedBlob = null;
 let blobOffsetX = 0;
 let blobOffsetY = 0;
 
-const colorLowValence = "#2D6C84"; // valence = 1
-const colorHighValence = "#D1A256"; // valence = 10
+const colorLowValence = "#2D6C84";
+const colorHighValence = "#D1A256";
 
 function setup() {
     const canvas = createCanvas(windowWidth, windowHeight);
@@ -65,7 +65,6 @@ function draw() {
 
         for (let i = particles.length; i--;) {
             const particle = particles[i];
-            // Only apply gravity if not currently dragging this blob
             if (!selectedBlob || particle.parent !== selectedBlob) {
                 particle.addForce(0, 1000 * sdt, 0);
             }
@@ -92,7 +91,6 @@ function draw() {
             distanceJoints[i].update(1);
         }
 
-        // Particle collisions
         for (let i = particles.length; i--;) {
             const particle = particles[i];
             hashGrid
@@ -295,8 +293,6 @@ async function fetchAndDisplayEmotions() {
 }
 
 function createBlobForEmotion(emotion) {
-    // Reverse the color mapping: now factor=0 means valence=1 => low color (#2D6C84)
-    // and factor=1 means valence=10 => high color (#D1A256)
     const factor = map(emotion.valence, 1, 10, 0, 1);
     const blobHexColor = interpolateHexColor(
         colorLowValence,
@@ -317,7 +313,6 @@ function createBlobForEmotion(emotion) {
 
     const radius = map(emotion.arousal, 1, 10, 40, 120);
 
-    // Make it very heavy: arousal 1 = mass 1, arousal 10 = mass 10
     const mass = map(emotion.arousal, 1, 10, 1, 20);
 
     const blob = generateBlob(
@@ -365,7 +360,6 @@ function pointInPolygon(px, py, polygon) {
     return inside;
 }
 
-// Mouse interaction
 function mousePressed() {
     for (let blob of globalBlobs) {
         if (isBlobHovered(blob)) {
@@ -386,9 +380,6 @@ function mouseDragged() {
         const dx = targetX - cx;
         const dy = targetY - cy;
 
-        // Move all particles of the selected blob
-        // Heavier mass means it will still move, but due to higher mass,
-        // it will feel more sluggish in the physics simulation (more inertia).
         for (let p of selectedBlob.particles) {
             p.x += dx;
             p.y += dy;

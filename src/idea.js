@@ -39,7 +39,6 @@ router.get("/emotions", async (context) => {
     context.response.body = { emotions: allEmotions };
 });
 
-// POST route to process journal submissions and save emotions
 router.post("/submit", async (context) => {
     try {
         const body = context.request.body({ type: "json" });
