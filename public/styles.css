@@ -13,7 +13,8 @@ h1 {
     margin: 0;
     padding: 10px;
     font-size: 60px;
-    font-family: "Romie", sans-serif;
+    font-family: Arial, Helvetica, sans-serif;
+    /*font-family: "Romie", sans-serif;*/
     white-space: nowrap;
     position: absolute;
     top: 20px;
