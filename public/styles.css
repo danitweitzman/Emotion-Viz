@@ -13,8 +13,7 @@ h1 {
     margin: 0;
     padding: 10px;
     font-size: 60px;
-    font-family: Arial, Helvetica, sans-serif;
-    /*font-family: "Romie", sans-serif;*/
+    font-family: "Romie", sans-serif;
     white-space: nowrap;
     position: absolute;
     top: 20px;
@@ -24,7 +23,7 @@ h1 {
 
 #journalForm {
     position: absolute;
-    top: 140px; /* Adjust this value until it's nicely below the title */
+    top: 140px;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
@@ -40,7 +39,7 @@ h1 {
     padding: 15px;
     font-size: 16px;
     margin-bottom: 10px;
-    width: 700px; /* Make the textbox longer */
+    width: 700px;
 }
 
 button[type="submit"] {
@@ -56,7 +55,7 @@ button[type="submit"] {
     font-family: "GT Flexa Mono Trial VF", monospace;
     position: absolute;
     border: none;
-    top: 220px; /* Adjust this as well to be below the form */
+    top: 220px;
     left: 55%;
     transform: translateX(-50%);
     padding: 10px;

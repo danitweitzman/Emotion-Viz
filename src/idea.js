@@ -55,7 +55,7 @@ router.post("/submit", async (context) => {
 
         // Extract emotion, valence, and arousal using GPT
         const emotionExtract = await promptGPT(
-            `Based on the following written entry, what is the key word that represents the core emotion felt? Respond with a singular word in all caps, use no punctuation.\n\nEntry: ${newJournalEntry}`,
+            `Based on the following written entry, what is the key word that represents the core emotion felt? Respond with a singular word in all caps, use no punctuation. Words should all be in past tense. \n\nEntry: ${newJournalEntry}`,
         );
         const scaleValence = await promptGPT(
             `Using Russell's circumplex model of affect, score the following emotion on a scale of 1-10 based on valence. 1 being negative, 10 being positive. Emotion: ${emotionExtract}. Respond with only a number.`,
